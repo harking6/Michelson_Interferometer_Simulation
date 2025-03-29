@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>迈克尔逊干涉仪仿真实验 - 调整仪器过程</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .experiment-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .simulation-area {
+            flex: 2;
+            min-width: 600px;
+            height: 500px;
+            position: relative;
+            border: 1px solid #ddd;
+            background-color: #fafafa;
+        }
+        .control-panel {
+            flex: 1;
+            min-width: 300px;
+            padding: 15px;
+            background-color: #f0f7ff;
+            border-radius: 8px;
+        }
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .value-display {
+            font-family: monospace;
+            background-color: #e9f5ff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+        }
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.active {
+            background-color: #27ae60;
+        }
+        .info-panel {
+            position: absolute;
+            bottom: -20px;
+            left: 10px;
+            right: 10px;
+            width: auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-left: 4px solid #f39c12;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .info-panel h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: #d35400;
+            font-size: 14px;
+        }
+        .info-panel p {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+        .info-data {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .info-data p {
+            margin-right: 20px;
+            font-weight: bold;
+        }
+        .info-data span {
+            font-weight: normal;
+        }
+        .interference-display {
+            position: absolute;
+            right: 30px;
+            top: 30px;
+            width: 150px;
+            height: 150px;
+            border: 1px solid #aaa;
+            border-radius: 50%;
+            background: radial-gradient(circle, white, #f0f0f0);
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        .device-component {
+            position: absolute;
+            transition: transform 0.3s;
+        }
+        .light-source {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ff6b6b;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+            left: 100px;
+            top: 250px;
+        }
+        .beam-splitter {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(173, 216, 230, 0.5);
+            transform: rotate(45deg);
+            left: 250px;
+            top: 230px;
+            border: 1px solid #aaa;
+        }
+        .fixed-mirror {
+            width: 60px;
+            height: 5px;
+            background-color: #aaa;
+            border: 1px solid #888;
+            left: 230px;
+            top: 150px;
+        }
+        .movable-mirror {
+            width: 5px;
+            height: 60px;
+            background-color: #aaa;
+            border: 1px solid #888;
+            left: 350px;
+            top: 230px;
+        }
+        .compensation-plate {
+            width: 30px;
+            height: 3px;
+            background-color: rgba(173, 216, 230, 0.3);
+            border: 1px solid #ccc;
+            left: 280px;
+            top: 250px;
+        }
+        .component-label {
+            position: absolute;
+            font-size: 12px;
+        }
+        .light-path {
+            position: absolute;
+            height: 2px;
+            background-color: rgba(255, 0, 0, 0.7);
+            transform-origin: 0 0;
+            z-index: 1;
+        }
+        .data-display {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #e8f4f8;
+            border-radius: 4px;
+        }
+        .data-display p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>2.1.1 迈克尔逊干涉仪调整仪器过程</h1>
+        
+        <div class="experiment-container">
+            <div class="simulation-area" id="simulationArea">
+                <!-- 干涉图像显示区 -->
+                <div class="interference-display" id="interferencePattern"></div>
+                
+                <!-- 实验说明面板 -->
+                <div class="info-panel">
+                    <h3>实验信息</h3>
+                    <div class="info-data">
+                        <p><strong>光源类型:</strong> <span id="sourceTypeDisplay">点光源</span></p>
+                        <p><strong>光程差 (Δd):</strong> <span id="pathDifference">0.0 μm</span></p>
+                        <p><strong>干涉条纹数量:</strong> <span id="fringeCount">0</span></p>
+                        <p><strong>干涉质量:</strong> <span id="interferenceQuality">最佳</span></p>
+                    </div>
+                    <h3>实验说明</h3>
+                    <p>迈克尔逊干涉仪通过分束、反射和重合的方式产生干涉条纹。可调反射镜的微小移动会导致光程差变化，进而使干涉条纹发生偏移。</p>
+                    <p>当移动可调反射镜 λ/2 的距离时，干涉图样将移动一个完整的条纹。</p>
+                    <p>反射镜的角度对干涉条纹至关重要，稍微偏离垂直入射状态就会导致干涉效果变差。</p>
+                </div>
+                
+                <!-- 干涉仪组件 -->
+                <div class="device-component light-source" id="lightSource"></div>
+                <div class="device-component beam-splitter" id="beamSplitter"></div>
+                <div class="device-component fixed-mirror" id="fixedMirror"></div>
+                <div class="device-component movable-mirror" id="movableMirror"></div>
+                <div class="device-component compensation-plate" id="compensationPlate"></div>
+                
+                <!-- 组件标签 -->
+                <div class="component-label" style="left: 95px; top: 280px;" id="sourceTypeLabel">点光源</div>
+                <div class="component-label" style="left: 235px; top: 280px;">分光镜</div>
+                <div class="component-label" style="left: 230px; top: 135px;">固定反射镜</div>
+                <div class="component-label" style="left: 360px; top: 240px;">可调反射镜</div>
+                <div class="component-label" style="left: 280px; top: 260px;">补偿片</div>
+                <div class="component-label" style="left: 420px; top: 30px;">干涉图像</div>
+            </div>
+            
+            <div class="control-panel">
+                <h2>实验控制面板</h2>
+                
+                <div class="button-container">
+                    <button id="resetBtn">重置实验</button>
+                    <button id="toggleLightPath" class="active">光路显示</button>
+                    <button id="toggleSource">点光源/扩展光源切换</button>
+                </div>
+                
+                <h3>可调反射镜位置调整</h3>
+                <div class="slider-container">
+                    <label for="mirrorPosition">位置调整 (μm)：</label>
+                    <input type="range" id="mirrorPosition" min="-50" max="50" step="0.5" value="0">
+                    <div class="value-display" id="positionValue">0.0 μm</div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="fineAdjustment">精细调整 (nm)：</label>
+                    <input type="range" id="fineAdjustment" min="-1000" max="1000" step="10" value="0">
+                    <div class="value-display" id="fineValue">0 nm</div>
+                </div>
+                
+                <h3>组件角度调整</h3>
+                <div class="slider-container">
+                    <label for="fixedMirrorAngle">固定反射镜角度：</label>
+                    <input type="range" id="fixedMirrorAngle" min="-30" max="30" step="0.5" value="0">
+                    <div class="value-display" id="fixedAngleValue" style="display: none;">0.0°</div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="movableMirrorAngle">可调反射镜角度：</label>
+                    <input type="range" id="movableMirrorAngle" min="-30" max="30" step="0.5" value="0">
+                    <div class="value-display" id="movableAngleValue" style="display: none;">0.0°</div>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="splitterAngle">分光镜角度：</label>
+                    <input type="range" id="splitterAngle" min="-30" max="30" step="0.5" value="0">
+                    <div class="value-display" id="splitterAngleValue" style="display: none;">0.0°</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const simulationArea = document.getElementById('simulationArea');
+        const interferencePattern = document.getElementById('interferencePattern');
+        const lightSource = document.getElementById('lightSource');
+        const beamSplitter = document.getElementById('beamSplitter');
+        const fixedMirror = document.getElementById('fixedMirror');
+        const movableMirror = document.getElementById('movableMirror');
+        const compensationPlate = document.getElementById('compensationPlate');
+        
+        // 控制面板元素
+        const mirrorPositionSlider = document.getElementById('mirrorPosition');
+        const fineAdjustmentSlider = document.getElementById('fineAdjustment');
+        const fixedMirrorAngleSlider = document.getElementById('fixedMirrorAngle');
+        const movableMirrorAngleSlider = document.getElementById('movableMirrorAngle');
+        const splitterAngleSlider = document.getElementById('splitterAngle');
+        
+        // 显示元素
+        const positionValueDisplay = document.getElementById('positionValue');
+        const fineValueDisplay = document.getElementById('fineValue');
+        const fixedAngleValueDisplay = document.getElementById('fixedAngleValue');
+        const movableAngleValueDisplay = document.getElementById('movableAngleValue');
+        const splitterAngleValueDisplay = document.getElementById('splitterAngleValue');
+        const pathDifferenceDisplay = document.getElementById('pathDifference');
+        const fringeCountDisplay = document.getElementById('fringeCount');
+        const interferenceQualityDisplay = document.getElementById('interferenceQuality');
+        
+        // 按钮
+        const resetBtn = document.getElementById('resetBtn');
+        const toggleLightPathBtn = document.getElementById('toggleLightPath');
+        const toggleSourceBtn = document.getElementById('toggleSource');
+        
+        // 实验参数
+        let experimentParams = {
+            wavelength: 633, // 纳米 (红光)
+            isLightPathVisible: true,
+            isPointSource: true,
+            mirrorPosition: 0, // 微米
+            fineAdjustment: 0, // 纳米
+            fixedMirrorAngle: 0, // 度
+            movableMirrorAngle: 0, // 度
+            splitterAngle: 0 // 度
+        };
+        
+        // 存储光路元素
+        let lightPaths = [];
+        
+        // 更新光路
+        function updateLightPaths() {
+            // 清除现有光路
+            for (let path of lightPaths) {
+                simulationArea.removeChild(path);
+            }
+            lightPaths = [];
+            
+            if (!experimentParams.isLightPathVisible) {
+                return;
+            }
+            
+            // 获取组件中心位置
+            const sourceRect = lightSource.getBoundingClientRect();
+            const splitterRect = beamSplitter.getBoundingClientRect();
+            const fixedMirrorRect = fixedMirror.getBoundingClientRect();
+            const movableMirrorRect = movableMirror.getBoundingClientRect();
+            const simulationRect = simulationArea.getBoundingClientRect();
+            
+            // 相对于模拟区域的位置
+            const sourceX = sourceRect.left + sourceRect.width/2 - simulationRect.left;
+            const sourceY = sourceRect.top + sourceRect.height/2 - simulationRect.top;
+            
+            const splitterX = splitterRect.left + splitterRect.width/2 - simulationRect.left;
+            const splitterY = splitterRect.top + splitterRect.height/2 - simulationRect.top;
+            
+            const fixedMirrorX = fixedMirrorRect.left + fixedMirrorRect.width/2 - simulationRect.left;
+            const fixedMirrorY = fixedMirrorRect.top + fixedMirrorRect.height/2 - simulationRect.top;
+            
+            // 可调镜位置(加上偏移)
+            const offsetX = experimentParams.mirrorPosition * 0.5; // 视觉效果缩放因子
+            const movableMirrorX = movableMirrorRect.left + movableMirrorRect.width/2 - simulationRect.left + offsetX;
+            const movableMirrorY = movableMirrorRect.top + movableMirrorRect.height/2 - simulationRect.top;
+            
+            // 观察屏位置
+            const screenX = interferencePattern.getBoundingClientRect().left - simulationRect.left + 75;
+            const screenY = interferencePattern.getBoundingClientRect().top - simulationRect.top + 75;
+            
+            // 创建光路
+            // 从光源到分光镜
+            createLightPath(sourceX, sourceY, splitterX, splitterY, 'rgba(255, 0, 0, 1)');
+            
+            // 从分光镜到固定镜
+            createLightPath(splitterX, splitterY, fixedMirrorX, fixedMirrorY, 'rgba(255, 0, 0, 0.8)');
+            
+            // 从固定镜回到分光镜
+            createLightPath(fixedMirrorX, fixedMirrorY, splitterX, splitterY, 'rgba(255, 0, 0, 0.7)');
+            
+            // 从分光镜到可调镜
+            createLightPath(splitterX, splitterY, movableMirrorX, movableMirrorY, 'rgba(255, 0, 0, 0.8)');
+            
+            // 从可调镜回到分光镜
+            createLightPath(movableMirrorX, movableMirrorY, splitterX, splitterY, 'rgba(255, 0, 0, 0.7)');
+            
+            // 从分光镜到干涉屏
+            createLightPath(splitterX, splitterY, screenX, screenY, 'rgba(255, 0, 0, 0.9)');
+        }
+        
+        // 创建光路线段
+        function createLightPath(x1, y1, x2, y2, color) {
+            const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+            
+            const path = document.createElement('div');
+            path.className = 'light-path';
+            path.style.left = x1 + 'px';
+            path.style.top = y1 + 'px';
+            path.style.width = length + 'px';
+            path.style.backgroundColor = color;
+            path.style.transform = `rotate(${angle}deg)`;
+            
+            simulationArea.appendChild(path);
+            lightPaths.push(path);
+            return path;
+        }
+        
+        // 更新干涉图案
+        function updateInterferencePattern() {
+            // 计算总位移 (微米)
+            const totalDisplacement = experimentParams.mirrorPosition + (experimentParams.fineAdjustment / 1000);
+            
+            // 计算光程差 (微米) - 往返路径所以是2倍
+            const pathDifference = 2 * totalDisplacement;
+            pathDifferenceDisplay.textContent = pathDifference.toFixed(3) + ' μm';
+            
+            // 计算条纹数变化
+            const wavelengthInMicrons = experimentParams.wavelength / 1000; // 转换为微米
+            const fringeCount = Math.abs(pathDifference / wavelengthInMicrons);
+            fringeCountDisplay.textContent = fringeCount.toFixed(1);
+            
+            // 考虑光路对准情况评价干涉条件
+            const alignmentQuality = evaluateAlignment();
+            let interferenceQuality = "最佳";
+            let contrastFactor = 1.0;
+            
+            if(alignmentQuality < 0.7) {
+                interferenceQuality = "很差";
+                contrastFactor = 0.2;
+                // 角度偏离太大，不显示干涉图像
+                interferencePattern.style.background = '#f0f0f0';
+                interferenceQualityDisplay.textContent = "无法形成（角度偏离过大）";
+                return;
+            } else if(alignmentQuality < 0.85) {
+                interferenceQuality = "一般";
+                contrastFactor = 0.5;
+            } else if(alignmentQuality < 0.95) {
+                interferenceQuality = "良好";
+                contrastFactor = 0.8;
+            }
+            
+            interferenceQualityDisplay.textContent = interferenceQuality;
+            
+            // 计算相位偏移
+            const phaseShift = (pathDifference % wavelengthInMicrons) / wavelengthInMicrons * 2 * Math.PI;
+            
+            // 根据光路对准情况调整干涉条纹对比度
+            if (experimentParams.isPointSource) {
+                // 点光源 - 同心环
+                const period = 10; // 条纹周期(像素)
+                const shift = (phaseShift / (2 * Math.PI)) * period;
+                
+                // 根据对准质量生成颜色
+                const minIntensity = Math.round(255 * (1 - contrastFactor));
+                
+                interferencePattern.style.background = `repeating-radial-gradient(
+                    circle at center,
+                    rgb(${minIntensity}, ${minIntensity}, ${minIntensity}) ${shift}px,
+                    white ${shift + period/2}px,
+                    rgb(${minIntensity}, ${minIntensity}, ${minIntensity}) ${shift + period}px
+                )`;
+            } else {
+                // 扩展光源 - 平行条纹
+                const period = 15; // 条纹周期(像素)
+                const shift = (phaseShift / (2 * Math.PI)) * period;
+                
+                // 根据对准质量生成颜色
+                const minIntensity = Math.round(255 * (1 - contrastFactor));
+                
+                interferencePattern.style.background = `repeating-linear-gradient(
+                    ${90 + experimentParams.splitterAngle}deg,
+                    rgb(${minIntensity}, ${minIntensity}, ${minIntensity}) ${shift}px,
+                    white ${shift + period/2}px,
+                    rgb(${minIntensity}, ${minIntensity}, ${minIntensity}) ${shift + period}px
+                )`;
+            }
+            
+            // 更新可调镜位置 (减小缩放因子，使得大幅度移动也合理显示)
+            const offsetX = experimentParams.mirrorPosition * 0.3; // 视觉缩放因子
+            movableMirror.style.left = (350 + offsetX) + 'px';
+        }
+        
+        // 评估光路对准情况
+        function evaluateAlignment() {
+            // 计算对准程度 (0-1，1为完全对准)
+            let alignmentScore = 1.0;
+            
+            // 镜子角度偏离惩罚 (由于角度范围扩大了，调整惩罚系数)
+            alignmentScore -= Math.abs(experimentParams.fixedMirrorAngle) / 60;
+            alignmentScore -= Math.abs(experimentParams.movableMirrorAngle) / 60;
+            
+            // 分光镜角度偏离惩罚
+            alignmentScore -= Math.abs(experimentParams.splitterAngle) / 45;
+            
+            // 确保分数在0-1之间
+            return Math.max(0, Math.min(1, alignmentScore));
+        }
+        
+        // 更新整个实验
+        function updateExperiment() {
+            // 更新组件旋转
+            fixedMirror.style.transform = `rotate(${experimentParams.fixedMirrorAngle}deg)`;
+            movableMirror.style.transform = `rotate(${90 + experimentParams.movableMirrorAngle}deg)`;
+            beamSplitter.style.transform = `rotate(${45 + experimentParams.splitterAngle}deg)`;
+            
+            updateLightPaths();
+            updateInterferencePattern();
+        }
+        
+        // 重置实验
+        function resetExperiment() {
+            // 生成大幅偏离的随机位置 (±30微米范围内)
+            experimentParams.mirrorPosition = (Math.random() * 60 - 30).toFixed(1) * 1;
+            experimentParams.fineAdjustment = (Math.random() * 1000 - 500).toFixed(0) * 1;
+            
+            // 生成较大的随机角度偏离 (±20度范围内)
+            experimentParams.fixedMirrorAngle = (Math.random() * 40 - 20).toFixed(1) * 1;
+            experimentParams.movableMirrorAngle = (Math.random() * 40 - 20).toFixed(1) * 1;
+            experimentParams.splitterAngle = (Math.random() * 40 - 20).toFixed(1) * 1;
+            
+            // 确保至少一个角度有明显偏离
+            const ensureLargeDeviation = function() {
+                const hasLargeDeviation = 
+                    Math.abs(experimentParams.fixedMirrorAngle) > 10 ||
+                    Math.abs(experimentParams.movableMirrorAngle) > 10 ||
+                    Math.abs(experimentParams.splitterAngle) > 10;
+                    
+                if (!hasLargeDeviation) {
+                    // 随机选择一个组件进行大角度偏离
+                    const component = Math.floor(Math.random() * 3);
+                    const deviation = Math.random() > 0.5 ? 15 : -15;
+                    
+                    if (component === 0) {
+                        experimentParams.fixedMirrorAngle = deviation;
+                    } else if (component === 1) {
+                        experimentParams.movableMirrorAngle = deviation;
+                    } else {
+                        experimentParams.splitterAngle = deviation;
+                    }
+                }
+            };
+            
+            ensureLargeDeviation();
+            
+            // 更新组件位置和旋转
+            movableMirror.style.left = (350 + experimentParams.mirrorPosition * 0.3) + 'px';
+            fixedMirror.style.transform = `rotate(${experimentParams.fixedMirrorAngle}deg)`;
+            movableMirror.style.transform = `rotate(${90 + experimentParams.movableMirrorAngle}deg)`;
+            beamSplitter.style.transform = `rotate(${45 + experimentParams.splitterAngle}deg)`;
+            
+            // 更新滑块
+            mirrorPositionSlider.value = experimentParams.mirrorPosition;
+            fineAdjustmentSlider.value = experimentParams.fineAdjustment;
+            fixedMirrorAngleSlider.value = experimentParams.fixedMirrorAngle;
+            movableMirrorAngleSlider.value = experimentParams.movableMirrorAngle;
+            splitterAngleSlider.value = experimentParams.splitterAngle;
+            
+            // 更新显示
+            positionValueDisplay.textContent = experimentParams.mirrorPosition.toFixed(1) + ' μm';
+            fineValueDisplay.textContent = experimentParams.fineAdjustment + ' nm';
+            
+            // 更新实验状态
+            updateExperiment();
+        }
+        
+        // 事件监听器
+        mirrorPositionSlider.addEventListener('input', function() {
+            experimentParams.mirrorPosition = parseFloat(this.value);
+            positionValueDisplay.textContent = experimentParams.mirrorPosition.toFixed(1) + ' μm';
+            updateExperiment();
+        });
+        
+        fineAdjustmentSlider.addEventListener('input', function() {
+            experimentParams.fineAdjustment = parseInt(this.value);
+            fineValueDisplay.textContent = experimentParams.fineAdjustment + ' nm';
+            updateExperiment();
+        });
+        
+        fixedMirrorAngleSlider.addEventListener('input', function() {
+            experimentParams.fixedMirrorAngle = parseFloat(this.value);
+            fixedAngleValueDisplay.textContent = experimentParams.fixedMirrorAngle.toFixed(1) + '°';
+            updateExperiment();
+        });
+        
+        movableMirrorAngleSlider.addEventListener('input', function() {
+            experimentParams.movableMirrorAngle = parseFloat(this.value);
+            movableAngleValueDisplay.textContent = experimentParams.movableMirrorAngle.toFixed(1) + '°';
+            updateExperiment();
+        });
+        
+        splitterAngleSlider.addEventListener('input', function() {
+            experimentParams.splitterAngle = parseFloat(this.value);
+            splitterAngleValueDisplay.textContent = experimentParams.splitterAngle.toFixed(1) + '°';
+            updateExperiment();
+        });
+        
+        resetBtn.addEventListener('click', function() {
+            resetExperiment();
+        });
+        
+        toggleLightPathBtn.addEventListener('click', function() {
+            this.classList.toggle('active');
+            experimentParams.isLightPathVisible = this.classList.contains('active');
+            updateLightPaths();
+        });
+        
+        toggleSourceBtn.addEventListener('click', function() {
+            this.classList.toggle('active');
+            experimentParams.isPointSource = !this.classList.contains('active');
+            
+            // 更新光源类型显示
+            const sourceTypeDisplay = document.getElementById('sourceTypeDisplay');
+            sourceTypeDisplay.textContent = experimentParams.isPointSource ? "点光源" : "扩展光源";
+            
+            // 更新光源标签
+            const sourceTypeLabel = document.getElementById('sourceTypeLabel');
+            sourceTypeLabel.textContent = experimentParams.isPointSource ? "点光源" : "扩展光源";
+            
+            updateExperiment();
+        });
+        
+        // 初始化时设置光源类型显示
+        const sourceTypeDisplay = document.getElementById('sourceTypeDisplay');
+        sourceTypeDisplay.textContent = experimentParams.isPointSource ? "点光源" : "扩展光源";
+        
+        // 初始化光源标签
+        const sourceTypeLabel = document.getElementById('sourceTypeLabel');
+        sourceTypeLabel.textContent = experimentParams.isPointSource ? "点光源" : "扩展光源";
+        
+        // 初始化实验
+        updateExperiment();
+    </script>
+</body>
+</html>
